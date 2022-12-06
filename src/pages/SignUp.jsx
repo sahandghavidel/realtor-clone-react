@@ -1,22 +1,51 @@
-import { useState } from "react";
-import { AiFillEyeInvisible, AiFillEye } from "react-icons/ai";
-import { Link } from "react-router-dom";
-import OAuth from "../components/OAuth";
+import { useState } from 'react'
+import { AiFillEyeInvisible, AiFillEye } from 'react-icons/ai'
+import { Link } from 'react-router-dom'
+import OAuth from '../components/OAuth'
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { db } from '../firebase'
+import { serverTimestamp, setDoc, doc } from 'firebase/firestore'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 export default function SignUp() {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const { name,email, password } = formData;
+    name: '',
+    email: '',
+    password: '',
+  })
+
+  const { name, email, password } = formData
+  const navigate = useNavigate()
+
   function onChange(e) {
     setFormData((prevState) => ({
       ...prevState,
       [e.target.id]: e.target.value,
-    }));
+    }))
   }
+
+  async function onSubmit(e) {
+    e.preventDefault()
+    try {
+      const auth = getAuth()
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+
+      updateProfile(auth.currentUser, { displayName: name })
+      const user = userCredential.user
+      const formDataCopy = { ...formData }
+      delete formDataCopy.password
+      formDataCopy.timestamp = serverTimestamp()
+
+      await setDoc(doc(db, 'users', user.uid), formDataCopy)
+      toast.success('Sing up was successful')
+      navigate('/')
+    } catch (error) {
+      toast.error('Something went wrong with the registration')
+    }
+  }
+
   return (
     <section>
       <h1 className="text-3xl text-center mt-6 font-bold">Sign Up</h1>
@@ -29,7 +58,7 @@ export default function SignUp() {
           />
         </div>
         <div className="w-full md:w-[67%] lg:w-[40%] lg:ml-20">
-          <form>
+          <form onSubmit={onSubmit}>
             <input
               type="text"
               id="name"
@@ -48,7 +77,7 @@ export default function SignUp() {
             />
             <div className="relative mb-6">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 value={password}
                 onChange={onChange}
@@ -56,32 +85,20 @@ export default function SignUp() {
                 className="w-full px-4 py-2 text-xl text-gray-700 bg-white border-gray-300 rounded transition ease-in-out"
               />
               {showPassword ? (
-                <AiFillEyeInvisible
-                  className="absolute right-3 top-3 text-xl cursor-pointer"
-                  onClick={() => setShowPassword((prevState) => !prevState)}
-                />
+                <AiFillEyeInvisible className="absolute right-3 top-3 text-xl cursor-pointer" onClick={() => setShowPassword((prevState) => !prevState)} />
               ) : (
-                <AiFillEye
-                  className="absolute right-3 top-3 text-xl cursor-pointer"
-                  onClick={() => setShowPassword((prevState) => !prevState)}
-                />
+                <AiFillEye className="absolute right-3 top-3 text-xl cursor-pointer" onClick={() => setShowPassword((prevState) => !prevState)} />
               )}
             </div>
             <div className="flex justify-between whitespace-nowrap text-sm sm:text-lg">
               <p className="mb-6">
                 Have a account?
-                <Link
-                  to="/sign-in"
-                  className="text-red-600 hover:text-red-700 transition duration-200 ease-in-out ml-1"
-                >
+                <Link to="/sign-in" className="text-red-600 hover:text-red-700 transition duration-200 ease-in-out ml-1">
                   Sign in
                 </Link>
               </p>
               <p>
-                <Link
-                  to="/forgot-password"
-                  className="text-blue-600 hover:text-blue-800 transition duration-200 ease-in-out"
-                >
+                <Link to="/forgot-password" className="text-blue-600 hover:text-blue-800 transition duration-200 ease-in-out">
                   Forgot password?
                 </Link>
               </p>
@@ -100,5 +117,5 @@ export default function SignUp() {
         </div>
       </div>
     </section>
-  );
+  )
 }
