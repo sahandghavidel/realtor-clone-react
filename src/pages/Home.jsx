@@ -26,7 +26,7 @@ export default function Home() {
         const q = query(
           listingsRef,
           where("offer", "==", true),
-          orderBy("timestamp", "asc"),
+          orderBy("timestamp", "desc"),
           limit(4)
         );
         // execute the query
@@ -56,7 +56,7 @@ export default function Home() {
         const q = query(
           listingsRef,
           where("type", "==", "rent"),
-          orderBy("timestamp", "asc"),
+          orderBy("timestamp", "desc"),
           limit(4)
         );
         // execute the query
@@ -86,7 +86,7 @@ export default function Home() {
         const q = query(
           listingsRef,
           where("type", "==", "sale"),
-          orderBy("timestamp", "asc"),
+          orderBy("timestamp", "desc"),
           limit(4)
         );
         // execute the query
